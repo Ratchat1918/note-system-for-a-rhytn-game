@@ -1,12 +1,53 @@
 import kaplay from "kaplay";
-
 const k=kaplay({
     width: window.innerWidth,
     height: window.innerHeight,
     canvas: document.getElementById("canvas"),
     scale:1
 });
+let casbahSongSelected=true;
+let casbahSongBpm=130;
+var rockTheCasbahAudio=document.getElementById("rockTheCasbah");
+var casbahSongLength=document.getElementById("rockTheCasbah").duration;
+function playTrack(){
+    if(casbahSongSelected){
+        rockTheCasbahAudio.volume=0.6;
+        rockTheCasbahAudio.play();
+    }
+}
 
+let startBtn = k.add([
+    anchor("center"),
+    pos(center()),
+    rect(600, 200, { radius: 8 }),
+    outline(4, BLACK),
+    "startBtn",
+    area(),
+]);
+startBtn.add([
+    anchor("center"),
+    text("Press to play",{
+        size:26,
+    }),
+    color(0,0,0)
+])
+//Start game
+onClick("startBtn",()=>{
+    playTrack();
+    startBtn.destroy();
+    startGame();
+})
+let pauseBtn=k.add([
+    pos(window.innerWidth-110,0),
+    rect(100,64,{ radius: 8 }),
+    color(0,0,0),
+    outline(4,WHITE)
+])
+pauseBtn.add([
+    text("Pause",{
+        size:26,
+    }),
+])
 //loading arrow sprites
 loadSprite("arrowDown","./sprites/arrowDown.png");
 loadSprite("arrowUp","./sprites/arrowUp.png");
@@ -32,7 +73,7 @@ const borderOfGame=k.add([
 ]);
 
 //creating arrow notes
-const arrowLeftX=window.innerWidth/2-172; const arrowLeftY=0;//original position of the left arrow, use to  reate position of others
+const arrowLeftX=window.innerWidth/2-172; const arrowLeftY=0;//original position of the left arrow, use to  create position of others
 let arrowLeft=k.add([
     sprite("arrowLeft"),
     pos(arrowLeftX,arrowLeftY),
@@ -54,6 +95,47 @@ let arrowRight=k.add([
     area()
 ]);
 
+//functions to move arrow note
+function moveLeftNote(){
+    arrowLeft.destroy();
+    arrowLeft=add(createArrow("arrowLeft",arrowLeftX,arrowLeftY));
+    onUpdate(()=>{
+        arrowLeft.moveTo(playerX,window.innerHeight,200);
+        arrowLeft.onCollide("border",()=>{
+            arrowLeft.destroy();
+        });
+    })
+}
+function moveRightNote(){
+    arrowRight.destroy();
+    arrowRight=add(createArrow("arrowRight",arrowLeftX+362,arrowLeftY));
+    onUpdate(()=>{
+        arrowRight.moveTo(playerX+362,window.innerHeight,200);
+        arrowRight.onCollide("border",()=>{
+            arrowRight.destroy();
+    });
+    })
+    }
+function moveDownNote(){
+    arrowDown.destroy();
+    arrowDown=add(createArrow("arrowDown",arrowLeftX+234,arrowLeftY));
+    onUpdate(()=>{
+        arrowDown.moveTo(playerX+234,window.innerHeight,200)
+        arrowDown.onCollide("border",()=>{
+            arrowDown.destroy();
+        });
+    })
+    }
+function moveUpNote(){
+    arrowUp.destroy();
+    arrowUp=add(createArrow("arrowUp",arrowLeftX+128,arrowLeftY));
+    onUpdate(()=>{
+        arrowUp.moveTo(playerX+128,window.innerHeight,200)
+        arrowUp.onCollide("border",()=>{
+            arrowUp.destroy();
+        });
+    })
+    }
 //creating player's arrows
 const playerX=window.innerWidth/2-172; const playerY=window.innerHeight-172;
 let playerArrowLeft=k.add([
@@ -77,45 +159,16 @@ let playerArrowRight=k.add([
     area()
 ])
 //notes pattern
-loadSound("soundName", "./sounds/whyThisDealer.wav");
-let songTimer=0;
-document.getElementById("body").onload=function songUa(){
-    var timer=setInterval(()=>{
-        songTimer++;
-        if(songTimer===100){
-            clearInterval(timer);
-            console.log("times up "+songTimer);
-        }
-    },1000)
-}
-const sound=play("soundName", {
-    volume: 0.5, // set the volume to 50%
-    speed: 1, // speed up the sound
-    loop: false, // loop the sound
-});
+
 //arrow movement
-onUpdate(()=>{
-    arrowDown.move(0,200);
-    arrowLeft.move(0,150);
-    arrowUp.move(0,100);
-    arrowRight.move(0,175);
-    arrowLeft.onCollide("border",()=>{
-        arrowLeft.destroy();
-        arrowLeft=add(createArrow("arrowLeft",arrowLeftX,arrowLeftY));
-    });
-    arrowUp.onCollide("border",()=>{
-        arrowUp.destroy();
-        arrowUp=add(createArrow("arrowUp",arrowLeftX+128,arrowLeftY));
-    });
-    arrowDown.onCollide("border",()=>{
-        arrowDown.destroy();
-        arrowDown=add(createArrow("arrowDown",arrowLeftX+234,arrowLeftY));
-    });
-    arrowRight.onCollide("border",()=>{
-        arrowRight.destroy();
-        arrowRight=add(createArrow("arrowRight",arrowLeftX+362,arrowLeftY));
-    });
-})
+function startGame(){
+    moveLeftNote();
+    moveRightNote();
+    moveUpNote();
+    moveDownNote();
+    console.log(rockTheCasbahAudio.currentTime);
+}
+
 //Arrows hitting
 onKeyPress("left",()=> {
     if(arrowLeft.pos.y>=playerArrowLeft.pos.y-32 || arrowLeft.pos.y>=playerArrowLeft.pos.y+32){
